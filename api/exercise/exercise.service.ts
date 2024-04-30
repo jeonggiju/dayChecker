@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   IExerciseServiceCreate,
-  IExerciseServiceFindOne,
+  IExerciseServiceFindAllByUser,
+  IExerciseServiceFindAllWithDeleted,
+  IExerciseServiceFindOneById,
   IExerciseServiceRemove,
   IExerciseServiceRestore,
   IExerciseServiceUpdate,
@@ -17,17 +19,25 @@ export class ExerciseService {
     @InjectRepository(Exercise)
     private readonly exerciseRepository: Repository<Exercise>,
     private readonly exercisePartService: ExercisePartService,
-    private readonly dataSource: DataSource,
   ) {}
 
-  async findAll(): Promise<Exercise[]> {
+  async findAllByUser({
+    userId,
+  }: IExerciseServiceFindAllByUser): Promise<Exercise[]> {
     const result = await this.exerciseRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       relations: ['user', 'exerciseParts'],
     });
     return result;
   }
 
-  async findOne({ exerciseId }: IExerciseServiceFindOne): Promise<Exercise> {
+  async findOneById({
+    exerciseId,
+  }: IExerciseServiceFindOneById): Promise<Exercise> {
     const result = await this.exerciseRepository.findOne({
       where: { id: exerciseId },
       relations: ['user', 'exerciseParts'],
@@ -36,9 +46,10 @@ export class ExerciseService {
   }
 
   async create({
+    userId,
     createExerciseInput,
   }: IExerciseServiceCreate): Promise<Exercise> {
-    const { userId, exerciseParts, ...exercise } = createExerciseInput;
+    const { exerciseParts, ...exercise } = createExerciseInput;
 
     // exercisePart 등록
     const partNames = exerciseParts.map((el) => el.replace('#', ''));
@@ -69,7 +80,7 @@ export class ExerciseService {
   }
 
   async remove({ exerciseId }: IExerciseServiceRemove): Promise<Exercise> {
-    const exercise = await this.findOne({ exerciseId });
+    const exercise = await this.findOneById({ exerciseId });
     const result = await this.exerciseRepository.softRemove(exercise);
     return result;
   }
@@ -78,7 +89,7 @@ export class ExerciseService {
     exerciseId,
     updateExerciseInput,
   }: IExerciseServiceUpdate): Promise<Exercise> {
-    const prevData = await this.findOne({ exerciseId });
+    const prevData = await this.findOneById({ exerciseId });
     const exerciseData = await this.exerciseRepository.create({
       ...prevData,
       ...updateExerciseInput,
@@ -93,8 +104,15 @@ export class ExerciseService {
     return data.affected ? true : false;
   }
 
-  async findAllWithDeleted(): Promise<Exercise[]> {
+  async findAllWithDeleted({
+    userId,
+  }: IExerciseServiceFindAllWithDeleted): Promise<Exercise[]> {
     return await this.exerciseRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       withDeleted: true,
       relations: ['user', 'exerciseParts'],
     });

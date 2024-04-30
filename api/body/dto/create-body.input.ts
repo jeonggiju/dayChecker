@@ -24,9 +24,6 @@ export class CreateBodyInput {
 
   @Field(() => String, { nullable: true })
   memo?: string;
-
-  @Field(() => String)
-  userId: string;
 }
 
 // @InputType()

@@ -4,7 +4,9 @@ import { Smoking } from './entities/smoking.entity';
 import { Repository } from 'typeorm';
 import {
   ISmokingServiceCreate,
-  ISmokingServiceFindOne,
+  ISmokingServiceFindAllByUser,
+  ISmokingServiceFindAllWithDeleted,
+  ISmokingServiceFindOneById,
   ISmokingServiceRemove,
   ISmokingServiceRestore,
   ISmokingServiceUpdate,
@@ -17,14 +19,22 @@ export class SmokingService {
     private readonly smokingRepository: Repository<Smoking>,
   ) {}
 
-  async findAll(): Promise<Smoking[]> {
+  async findAllByUser({
+    userId,
+  }: ISmokingServiceFindAllByUser): Promise<Smoking[]> {
     const result = await this.smokingRepository.find({
-      relations: ['user'],
+      where: {
+        user: {
+          id: userId,
+        },
+      },
     });
     return result;
   }
 
-  async findOne({ smokingId }: ISmokingServiceFindOne): Promise<Smoking> {
+  async findOneById({
+    smokingId,
+  }: ISmokingServiceFindOneById): Promise<Smoking> {
     const result = await this.smokingRepository.findOne({
       where: { id: smokingId },
       relations: ['user'],
@@ -33,12 +43,11 @@ export class SmokingService {
   }
 
   async create({
+    userId,
     createSmokingInput,
   }: ISmokingServiceCreate): Promise<Smoking> {
-    const { userId, ...smoking } = createSmokingInput;
-
     const result = this.smokingRepository.create({
-      ...smoking,
+      ...createSmokingInput,
       user: {
         id: userId,
       },
@@ -49,7 +58,7 @@ export class SmokingService {
   }
 
   async remove({ smokingId }: ISmokingServiceRemove): Promise<Smoking> {
-    const smoking = await this.findOne({ smokingId });
+    const smoking = await this.findOneById({ smokingId });
     const result = await this.smokingRepository.softRemove(smoking);
     return result;
   }
@@ -58,7 +67,7 @@ export class SmokingService {
     smokingId,
     updateSmokingInput,
   }: ISmokingServiceUpdate): Promise<Smoking> {
-    const prevData = await this.findOne({ smokingId });
+    const prevData = await this.findOneById({ smokingId });
     const smokingData = this.smokingRepository.create({
       ...prevData,
       ...updateSmokingInput,
@@ -73,8 +82,15 @@ export class SmokingService {
     return data.affected ? true : false;
   }
 
-  async findAllWithDeleted(): Promise<Smoking[]> {
+  async findAllWithDeleted({
+    userId,
+  }: ISmokingServiceFindAllWithDeleted): Promise<Smoking[]> {
     return await this.smokingRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       withDeleted: true,
       relations: ['user'],
     });

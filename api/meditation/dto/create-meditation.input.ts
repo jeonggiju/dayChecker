@@ -14,7 +14,4 @@ export class CreateMeditationInput {
 
   @Field(() => String, { nullable: true })
   memo?: string;
-
-  @Field(() => String)
-  userId: string;
 }

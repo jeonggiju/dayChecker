@@ -25,7 +25,7 @@ export class User {
   id: string;
 
   @Column()
-  @Field(() => String)
+  @Field(() => String, { description: 'shacking fucking ass~~' })
   name: string;
 
   @Column()

@@ -3,12 +3,12 @@ import { UserResolver } from './user.resolver';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { HobbyService } from 'api/hobby/hobby.service';
-import { Hobby } from 'api/hobby/entities/hobby.entity';
 import { TransactionService } from 'api/common/transaction.service';
+import { HobbyModule } from 'api/hobby/hobby.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Hobby])],
-  providers: [UserResolver, UserService, HobbyService, TransactionService],
+  imports: [TypeOrmModule.forFeature([User]), HobbyModule],
+  providers: [UserResolver, UserService, TransactionService],
+  exports: [UserService],
 })
 export class UserModule {}

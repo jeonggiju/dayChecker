@@ -21,7 +21,7 @@ export interface IUserServiceCleaningHobbies {
 }
 
 export interface IUserServiceRestore {
-  userId: string;
+  userEmail: string;
 }
 
 export interface IUserServiceFindUserByEmail {

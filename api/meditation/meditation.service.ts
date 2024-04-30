@@ -4,7 +4,9 @@ import { Repository } from 'typeorm';
 import { Meditation } from './entities/meditation.entity';
 import {
   IMeditationServiceCreate,
-  IMeditationServiceFindOne,
+  IMeditationServiceFindAllByUser,
+  IMeditationServiceFindAllWithDeletedByUser,
+  IMeditationServiceFindOneById,
   IMeditationServiceRemove,
   IMeditationServiceRestore,
   IMeditationServiceUpdate,
@@ -17,15 +19,22 @@ export class MeditationService {
     private readonly meditationRepository: Repository<Meditation>,
   ) {}
 
-  async findAll(): Promise<Meditation[]> {
+  async findAllByUser({
+    userId,
+  }: IMeditationServiceFindAllByUser): Promise<Meditation[]> {
     const result = await this.meditationRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       relations: ['user'],
     });
     return result;
   }
-  async findOne({
+  async findOneById({
     meditationId,
-  }: IMeditationServiceFindOne): Promise<Meditation> {
+  }: IMeditationServiceFindOneById): Promise<Meditation> {
     const result = await this.meditationRepository.findOne({
       where: { id: meditationId },
       relations: ['user'],
@@ -34,12 +43,11 @@ export class MeditationService {
   }
 
   async create({
+    userId,
     createMeditationInput,
   }: IMeditationServiceCreate): Promise<Meditation> {
-    const { userId, ...meditation } = createMeditationInput;
-
     const result = this.meditationRepository.save({
-      ...meditation,
+      ...createMeditationInput,
       user: {
         id: userId,
       },
@@ -51,7 +59,7 @@ export class MeditationService {
   async remove({
     meditationId,
   }: IMeditationServiceRemove): Promise<Meditation> {
-    const meditation = await this.findOne({ meditationId });
+    const meditation = await this.findOneById({ meditationId });
     const result = await this.meditationRepository.softRemove(meditation);
     return result;
   }
@@ -60,7 +68,7 @@ export class MeditationService {
     meditationId,
     updateMeditationInput,
   }: IMeditationServiceUpdate): Promise<Meditation> {
-    const prevData = await this.findOne({ meditationId });
+    const prevData = await this.findOneById({ meditationId });
     const meditationData = this.meditationRepository.create({
       ...prevData,
       ...updateMeditationInput,
@@ -75,8 +83,15 @@ export class MeditationService {
     return data.affected ? true : false;
   }
 
-  async findAllWithDeleted(): Promise<Meditation[]> {
+  async findAllWithDeletedByUser({
+    userId,
+  }: IMeditationServiceFindAllWithDeletedByUser): Promise<Meditation[]> {
     return await this.meditationRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       withDeleted: true,
       relations: ['user'],
     });

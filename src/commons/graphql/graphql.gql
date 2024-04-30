@@ -2,6 +2,22 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Body {
+  id: String!
+  weight: Float!
+  bodyFatMass: Float!
+  skeletonMuscleMass: Float!
+  height: Float!
+  date: DateTime!
+  memo: String
+  user: User!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Diary {
   id: String!
   diary: String!
@@ -56,6 +72,8 @@ type Study {
 
 type User {
   id: String!
+
+  """shacking fucking ass~~"""
   name: String!
   age: Int!
   school: String!
@@ -69,52 +87,39 @@ type User {
   study: [Study!]
 }
 
-type Body {
-  id: String!
-  weight: Float!
-  bodyFatMass: Float!
-  skeletonMuscleMass: Float!
-  height: Float!
-  date: DateTime!
-  memo: String
-  user: User!
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type Query {
   fetchUsers: [User!]!
-  fetchUser(userId: String!): User!
+  fetchUser: User!
   fetchUsersWithDeleted: [User!]!
-  fetchBodies: [Body!]!
-  fetchBody(bodyId: String!): Body!
-  fetchProductsWithRemoved: [Body!]!
-  fetchBodiesWithDeleted: [Body!]!
-  fetchDiary(diaryId: String!): Diary!
-  fetchDiaries: [Diary!]!
+  fetchBodiesByUser: [Body!]!
+  fetchBodyById(bodyId: String!): Body!
+  fetchBodiesWithRemoved: [Body!]!
+  fetchDiaryById(diaryId: String!): Diary!
+  fetchDiariesByUser: [Diary!]!
   fetchDiariesWithDeleted: [Diary!]!
-  fetchMeditation(meditationId: String!): Meditation!
-  fetchMeditations: [Meditation!]!
+  fetchMeditationById(meditationId: String!): Meditation!
+  fetchMeditationsByUser: [Meditation!]!
   fetchMeditationsWithDeleted: [Meditation!]!
-  fetchSmoking(smokingId: String!): Smoking!
-  fetchSmokings: [Smoking!]!
+  fetchSmokingById(smokingId: String!): Smoking!
+  fetchSmokingsByUser: [Smoking!]!
   fetchSmokingsWithDeleted: [Smoking!]!
-  fetchStudy(studyId: String!): Study!
-  fetchStudies: [Study!]!
+  fetchStudyById(studyId: String!): Study!
+  fetchStudiesByUser: [Study!]!
   fetchStudyWithDeleted: [Study!]!
-  fetchExercises: [Exercise!]!
-  fetchExercise(exerciseId: String!): Exercise!
+  fetchExercisesByUser: [Exercise!]!
+  fetchExerciseById(exerciseId: String!): Exercise!
   fetchExercisesWithDeleted: [Exercise!]!
 }
 
 type Mutation {
+  login(email: String!, password: String!): String!
+  restoreAccessToken: String!
+
+  """shacking fucking ass~~"""
   createUser(createUserInput: CreateUserInput!): User!
-  removeUser(userId: String!): User!
-  updateUser(userId: String!, updateUserInput: UpdateUserInput!): User!
-  restoreUser(userId: String!): Boolean!
+  removeUser: User!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  restoreUser(userEmail: String!): Boolean!
   createBody(createBodyInput: CreateBodyInput!): Body!
   removeBody(bodyId: String!): Body!
   updateBody(bodyId: String!, updateBodyInput: UpdateBodyInput!): Body!
@@ -166,7 +171,6 @@ input CreateBodyInput {
   height: Float!
   date: DateTime!
   memo: String
-  userId: String!
 }
 
 input UpdateBodyInput {
@@ -176,18 +180,15 @@ input UpdateBodyInput {
   height: Float
   date: DateTime
   memo: String
-  userId: String
 }
 
 input CreateDiaryInput {
   diary: String!
-  userId: String!
   rating: Int!
 }
 
 input UpdateDiaryInput {
   diary: String
-  userId: String
   rating: Int
 }
 
@@ -195,40 +196,34 @@ input CreateMeditationInput {
   meditationTime: String!
   rating: Int!
   memo: String
-  userId: String!
 }
 
 input UpdateMeditationInput {
   meditationTime: String
   rating: Int
   memo: String
-  userId: String
 }
 
 input CreateSmokingInput {
   rating: Int!
   memo: String
-  userId: String!
 }
 
 input UpdateSmokingInput {
   rating: Int
   memo: String
-  userId: String
 }
 
 input CreateStudyInput {
   rating: Int!
   studyTime: String!
   memo: String
-  userId: String!
 }
 
 input UpdateStudyInput {
   rating: Int
   studyTime: String
   memo: String
-  userId: String
 }
 
 input CreateExerciseInput {
@@ -247,5 +242,4 @@ input UpdateExerciseInput {
   height: Float
   date: DateTime
   memo: String
-  userId: String
 }

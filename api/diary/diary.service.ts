@@ -4,7 +4,9 @@ import { Diary } from './entities/diary.entity';
 import { Repository } from 'typeorm';
 import {
   IDiaryServiceCreate,
-  IDiaryServiceFindOne,
+  IDiaryServiceFindAllByUser,
+  IDiaryServiceFindAllWithDeleted,
+  IDiaryServiceFindOneById,
   IDiaryServiceRemove,
   IDiaryServiceRestore,
   IDiaryServiceUpdate,
@@ -17,13 +19,20 @@ export class DiaryService {
     private readonly diaryRepository: Repository<Diary>,
   ) {}
 
-  async findAll(): Promise<Diary[]> {
+  async findAllByUser({
+    userId,
+  }: IDiaryServiceFindAllByUser): Promise<Diary[]> {
     return await this.diaryRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       relations: ['user'],
     });
   }
 
-  async findOne({ diaryId }: IDiaryServiceFindOne): Promise<Diary> {
+  async findOneById({ diaryId }: IDiaryServiceFindOneById): Promise<Diary> {
     const result = await this.diaryRepository.findOne({
       where: { id: diaryId },
       relations: ['user'],
@@ -31,11 +40,12 @@ export class DiaryService {
     return result;
   }
 
-  async create({ createDiaryInput }: IDiaryServiceCreate): Promise<Diary> {
-    const { userId, ...diary } = createDiaryInput;
-
+  async create({
+    userId,
+    createDiaryInput,
+  }: IDiaryServiceCreate): Promise<Diary> {
     const result = await this.diaryRepository.create({
-      ...diary,
+      ...createDiaryInput,
       user: {
         id: userId,
       },
@@ -46,7 +56,7 @@ export class DiaryService {
   }
 
   async remove({ diaryId }: IDiaryServiceRemove): Promise<Diary> {
-    const diary = await this.findOne({ diaryId });
+    const diary = await this.findOneById({ diaryId });
     const result = await this.diaryRepository.softRemove(diary);
     return result;
   }
@@ -55,7 +65,7 @@ export class DiaryService {
     diaryId,
     updateDiaryInput,
   }: IDiaryServiceUpdate): Promise<Diary> {
-    const prevData = await this.findOne({ diaryId });
+    const prevData = await this.findOneById({ diaryId });
     const bodyData = this.diaryRepository.create({
       ...prevData,
       ...updateDiaryInput,
@@ -70,8 +80,15 @@ export class DiaryService {
     return data.affected ? true : false;
   }
 
-  async findAllWithDeleted(): Promise<Diary[]> {
+  async findAllWithDeleted({
+    userId,
+  }: IDiaryServiceFindAllWithDeleted): Promise<Diary[]> {
     return await this.diaryRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       withDeleted: true,
       relations: ['user'],
     });

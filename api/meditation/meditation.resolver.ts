@@ -1,20 +1,29 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { MeditationService } from './meditation.service';
 import { Meditation } from './entities/meditation.entity';
 import { CreateMeditationInput } from './dto/create-meditation.input';
 import { UpdateMeditationInput } from './dto/update-meditation.input';
+import { UseGuards } from '@nestjs/common';
+import { GqlAuthGuard } from 'api/auth/guards/gql-auth.guard';
+import { IContext } from 'api/common/interfaces/common';
 
 @Resolver()
 export class MeditationResolver {
   constructor(private readonly meditationService: MeditationService) {}
 
+  @UseGuards(GqlAuthGuard('access'))
   @Mutation(() => Meditation)
   createMeditation(
+    @Context() context: IContext,
     @Args('createMeditationInput') createMeditationInput: CreateMeditationInput,
   ): Promise<Meditation> {
-    return this.meditationService.create({ createMeditationInput });
+    return this.meditationService.create({
+      userId: context.req.user.id,
+      createMeditationInput,
+    });
   }
 
+  @UseGuards(GqlAuthGuard('access'))
   @Mutation(() => Meditation)
   removeMeditation(
     @Args('meditationId') meditationId: string,
@@ -22,18 +31,23 @@ export class MeditationResolver {
     return this.meditationService.remove({ meditationId });
   }
 
+  @UseGuards(GqlAuthGuard('access'))
   @Query(() => Meditation)
-  fetchMeditation(
+  fetchMeditationById(
     @Args('meditationId') meditationId: string,
   ): Promise<Meditation> {
-    return this.meditationService.findOne({ meditationId });
+    return this.meditationService.findOneById({ meditationId });
   }
 
+  @UseGuards(GqlAuthGuard('access'))
   @Query(() => [Meditation])
-  fetchMeditations(): Promise<Meditation[]> {
-    return this.meditationService.findAll();
+  fetchMeditationsByUser(@Context() context: IContext): Promise<Meditation[]> {
+    return this.meditationService.findAllByUser({
+      userId: context.req.user.id,
+    });
   }
 
+  @UseGuards(GqlAuthGuard('access'))
   @Mutation(() => Meditation)
   updateMeditation(
     @Args('meditationId') meditationId: string,
@@ -44,6 +58,8 @@ export class MeditationResolver {
       updateMeditationInput,
     });
   }
+
+  @UseGuards(GqlAuthGuard('access'))
   @Mutation(() => Boolean)
   restoreMeditation(
     @Args('meditationId') meditationId: string,
@@ -51,8 +67,13 @@ export class MeditationResolver {
     return this.meditationService.restore({ meditationId });
   }
 
+  @UseGuards(GqlAuthGuard('access'))
   @Query(() => [Meditation])
-  fetchMeditationsWithDeleted(): Promise<Meditation[]> {
-    return this.meditationService.findAllWithDeleted();
+  fetchMeditationsWithDeleted(
+    @Context() context: IContext,
+  ): Promise<Meditation[]> {
+    return this.meditationService.findAllWithDeletedByUser({
+      userId: context.req.user.id,
+    });
   }
 }

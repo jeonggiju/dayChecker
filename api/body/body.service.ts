@@ -4,7 +4,9 @@ import { Body } from './entities/body.entity';
 import { Repository } from 'typeorm';
 import {
   IBodyServiceCreate,
-  IBodyServiceFindOne,
+  IBodyServiceFindAllByUser,
+  IBodyServiceFindAllWithRemoved,
+  IBodyServiceFindOneById,
   IBodyServiceRemove,
   IBodyServiceRestore,
   IBodyServiceUpdate,
@@ -17,25 +19,19 @@ export class BodyService {
     private readonly bodyRepository: Repository<Body>,
   ) {}
 
-  async findAllWithRemoved(): Promise<Body[]> {
+  async findAllByUser({ userId }: IBodyServiceFindAllByUser): Promise<Body[]> {
     const result = await this.bodyRepository.find({
-      relations: ['user'],
-      lock: {
-        mode: 'pessimistic_write',
+      where: {
+        user: {
+          id: userId,
+        },
       },
-      withDeleted: true,
-    });
-    return result;
-  }
-
-  async findAll(): Promise<Body[]> {
-    const result = await this.bodyRepository.find({
       relations: ['user'],
     });
     return result;
   }
 
-  async findOne({ bodyId }: IBodyServiceFindOne): Promise<Body> {
+  async findOneById({ bodyId }: IBodyServiceFindOneById): Promise<Body> {
     const result = await this.bodyRepository.findOne({
       where: { id: bodyId },
       relations: ['user'],
@@ -43,11 +39,9 @@ export class BodyService {
     return result;
   }
 
-  async create({ createBodyInput }: IBodyServiceCreate) {
-    const { userId, ...body } = createBodyInput;
-
+  async create({ userId, createBodyInput }: IBodyServiceCreate) {
     const result = await this.bodyRepository.save({
-      ...body,
+      ...createBodyInput,
       user: {
         id: userId,
       },
@@ -56,13 +50,13 @@ export class BodyService {
   }
 
   async remove({ bodyId }: IBodyServiceRemove): Promise<Body> {
-    const body = await this.findOne({ bodyId });
+    const body = await this.findOneById({ bodyId });
     const result = await this.bodyRepository.softRemove(body);
     return result;
   }
 
   async update({ bodyId, updateBodyInput }: IBodyServiceUpdate): Promise<Body> {
-    const prevData = await this.findOne({ bodyId });
+    const prevData = await this.findOneById({ bodyId });
     console.log(prevData);
     const bodyData = this.bodyRepository.create({
       ...prevData,
@@ -78,8 +72,15 @@ export class BodyService {
     return data.affected ? true : false;
   }
 
-  async findAllWithDeleted(): Promise<Body[]> {
+  async findAllWithRemoved({
+    userId,
+  }: IBodyServiceFindAllWithRemoved): Promise<Body[]> {
     return await this.bodyRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
       relations: ['user'],
       withDeleted: true,
     });

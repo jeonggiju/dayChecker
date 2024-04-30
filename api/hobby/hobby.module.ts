@@ -8,5 +8,6 @@ import { Hobby } from './entities/hobby.entity';
   imports: [TypeOrmModule.forFeature([Hobby])],
 
   providers: [HobbyResolver, HobbyService],
+  exports: [HobbyService],
 })
 export class HobbyModule {}

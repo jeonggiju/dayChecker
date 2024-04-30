@@ -3,6 +3,7 @@ import {
   // HttpException,
   // HttpStatus,
   Injectable,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -42,11 +43,12 @@ export class UserService {
       where: { id: userId },
       relations: [
         'hobby',
-        'diary',
-        'body',
-        'exercise',
-        'smoking',
-        'meditation',
+        // 'diary',
+        // 'body',
+        // 'exercise',
+        // 'smoking',
+        // 'meditation',
+        // 'study',
       ],
     });
   }
@@ -55,11 +57,12 @@ export class UserService {
     return await this.userRepository.find({
       relations: [
         'hobby',
-        'diary',
-        'body',
-        'exercise',
-        'smoking',
-        'meditation',
+        // 'study',
+        // 'diary',
+        // 'body',
+        // 'exercise',
+        // 'smoking',
+        // 'meditation',
       ],
     });
   }
@@ -76,7 +79,7 @@ export class UserService {
       const { hobby, password, ...user } = createUserInput;
 
       const isExists = this.findUserByEmail({ userEmail: user.email });
-      if (isExists) {
+      if (!isExists) {
         throw new ConflictException('이미 등록된 이메일입니다.');
       }
       // if (isExists) {
@@ -123,9 +126,18 @@ export class UserService {
     return [...prevHobbies, ...newHobbies.identifiers];
   }
 
-  async restore({ userId }: IUserServiceRestore): Promise<boolean> {
-    const data = await this.userRepository.restore({ id: userId });
-    console.log(data);
+  async restore({ userEmail }: IUserServiceRestore): Promise<boolean> {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: userEmail,
+      },
+      withDeleted: true,
+    });
+
+    if (!user)
+      throw new UnprocessableEntityException('존재하지 않는 이메일입니다.');
+
+    const data = await this.userRepository.restore({ id: user.id });
     return data.affected ? true : false;
   }
 

@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from 'api/auth/auth.module';
 import { BodyModule } from 'api/body/body.module';
 import { Body } from 'api/body/entities/body.entity';
 import { DiaryModule } from 'api/diary/diary.module';
@@ -24,10 +25,12 @@ import { UserModule } from 'api/user/user.module';
 
 @Module({
   imports: [
+    AuthModule,
     ConfigModule.forRoot(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'src/commons/graphql/graphql.gql',
+      context: ({ req, res }) => ({ req, res }),
     }),
     TypeOrmModule.forRoot({
       type: process.env.DATABASE_TYPE as 'mysql',

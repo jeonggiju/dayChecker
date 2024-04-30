@@ -2,6 +2,7 @@ import { CreateStudyInput } from '../dto/create-study.input';
 import { UpdateStudyInput } from '../dto/update-study.input';
 
 export interface IStudyServiceCreate {
+  userId: string;
   createStudyInput: CreateStudyInput;
 }
 
@@ -19,4 +20,8 @@ export interface IStudyServiceUpdate {
 
 export interface IStudyServiceRestore {
   studyId: string;
+}
+
+export interface IStudyServiceFindUsersAll {
+  userId: string;
 }

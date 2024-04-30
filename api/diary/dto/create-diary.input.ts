@@ -8,10 +8,6 @@ export class CreateDiaryInput {
   diary: string;
 
   @IsNotEmpty()
-  @Field(() => String)
-  userId: string;
-
-  @IsNotEmpty()
   @Field(() => Int)
   rating: number;
 }

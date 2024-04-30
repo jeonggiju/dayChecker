@@ -6,7 +6,4 @@ export class CreateSmokingInput {
 
   @Field(() => String, { nullable: true })
   memo?: string;
-
-  @Field(() => String)
-  userId: string;
 }
